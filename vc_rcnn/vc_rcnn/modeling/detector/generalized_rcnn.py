@@ -27,6 +27,9 @@ class GeneralizedRCNN(nn.Module):
         super(GeneralizedRCNN, self).__init__()
 
         self.backbone = build_backbone(cfg)
+        """
+        Please note that here we disgard the rpn network since we needn't to detect the spatial coordinate of objects
+        """
         # self.rpn = build_rpn(cfg, self.backbone.out_channels)
         self.roi_heads = build_roi_heads(cfg, self.backbone.out_channels)
 
@@ -47,7 +50,8 @@ class GeneralizedRCNN(nn.Module):
             raise ValueError("In training mode, targets should be passed")
         images = to_image_list(images)
         features = self.backbone(images.tensors)
-        # proposals, proposal_losses = self.rpn(images, features, targets)
+
+        # we directly use bounding box coordinates from ground truth label
         if self.training:
             proposals = [target for target in targets]
         else:

@@ -130,53 +130,24 @@ class FastRCNNLossComputation(object):
         """
 
         class_logits = cat(class_logits, dim=0)
-        # box_regression = cat(box_regression, dim=0)
         device = class_logits.device
-
-        # if not hasattr(self, "_proposals"):
-        #     raise RuntimeError("subsample needs to be called before")
-
-        # proposals = self._proposals
 
         labels = [proposal.get_field("labels").to(dtype=torch.int64) for proposal in proposals]
         labels_self = cat(labels, dim=0)
 
-        # regression_targets = cat(
-        #     [proposal.get_field("regression_targets") for proposal in proposals], dim=0
-        # )
-
+        # self predictor loss
         classification_loss = F.cross_entropy(class_logits, labels_self)
 
+        # context predictor loss
         causal_loss = 0.
         for causal_logit, label in zip(causal_logits_list, labels):
             mask_label = label.unsqueeze(0).repeat(label.size(0), 1)
             mask = 1 - torch.eye(mask_label.size(0)).to(device)
-            # print("causal_logit: %d" %(causal_logit.size(0)))
             loss_causal = F.cross_entropy(causal_logit, mask_label.view(-1), reduction='none')
 
 
             loss_causal = loss_causal * mask.view(-1)
             causal_loss += torch.mean(loss_causal)
-
-
-        # get indices that correspond to the regression targets for
-        # the corresponding ground truth labels, to be used with
-        # advanced indexing
-        # sampled_pos_inds_subset = torch.nonzero(labels > 0).squeeze(1)
-        # labels_pos = labels[sampled_pos_inds_subset]
-        # if self.cls_agnostic_bbox_reg:
-        #     map_inds = torch.tensor([4, 5, 6, 7], device=device)
-        # else:
-        #     map_inds = 4 * labels_pos[:, None] + torch.tensor(
-        #         [0, 1, 2, 3], device=device)
-        #
-        # box_loss = smooth_l1_loss(
-        #     box_regression[sampled_pos_inds_subset[:, None], map_inds],
-        #     regression_targets[sampled_pos_inds_subset],
-        #     size_average=False,
-        #     beta=1,
-        # )
-        # box_loss = box_loss / labels.numel()
 
         return classification_loss, causal_loss
 

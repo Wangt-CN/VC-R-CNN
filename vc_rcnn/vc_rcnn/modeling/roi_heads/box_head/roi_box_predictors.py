@@ -42,12 +42,9 @@ class FPNPredictor(nn.Module):
         representation_size = in_channels
 
         self.cls_score = nn.Linear(representation_size, num_classes)
-        # num_bbox_reg_classes = 2 if cfg.MODEL.CLS_AGNOSTIC_BBOX_REG else num_classes
-        # self.bbox_pred = nn.Linear(representation_size, num_bbox_reg_classes * 4)
 
         nn.init.normal_(self.cls_score.weight, std=0.01)
-        # nn.init.normal_(self.bbox_pred.weight, std=0.001)
-        # for l in [self.cls_score, self.bbox_pred]:
+
         nn.init.constant_(self.cls_score.bias, 0)
 
     def forward(self, x):
@@ -55,9 +52,7 @@ class FPNPredictor(nn.Module):
             assert list(x.shape[2:]) == [1, 1]
             x = x.view(x.size(0), -1)
         scores = self.cls_score(x)
-        # bbox_deltas = self.bbox_pred(x)
 
-        # return scores, bbox_deltas
         return scores
 
 
@@ -88,75 +83,40 @@ class CausalPredictor(nn.Module):
         nn.init.constant_(self.causal_score.bias, 0)
 
         self.feature_size = representation_size
-        self.dic = torch.tensor(np.load('/data4/vc/vc-rcnn-betterlr/maskrcnn-benchmark/model/dic_coco.npy')[1:], dtype=torch.float)
-        self.prior = torch.tensor(np.load('/data4/vc/vc-rcnn-stat/stat_prob2.npy'), dtype=torch.float)
+        self.dic = torch.tensor(np.load(cfg.DIC_FILE)[1:], dtype=torch.float)
+        self.prior = torch.tensor(np.load(cfg.PRIOR_PROB), dtype=torch.float)
 
     def forward(self, x, proposals):
         device = x.get_device()
         dic_z = self.dic.to(device)
         prior = self.prior.to(device)
-        if len(proposals) == 2:
-            proposals1 = proposals[0].bbox.size(0)
-            proposals2 = proposals[1].bbox.size(0)
 
-            x1 = x[:proposals1]
-            x2 = x[proposals1:]
+        box_size_list = [proposal.bbox.size(0) for proposal in proposals]
+        feature_split = x.split(box_size_list)
+        xzs = [self.z_dic(feature_pre_obj, dic_z, prior) for feature_pre_obj in feature_split]
 
-
-            xz1, attn1 = self.z_dic(x1, dic_z, prior)
-            xz2, attn2 = self.z_dic(x2, dic_z, prior)
-
-            # a1 = self.causal_score(xz1)
-            # a2 = self.causal_score(xz2)
-            # if torch.isnan(a1).sum() or torch.isnan(a2).sum():
-            #     print(xz1)
-            #     print(xz2)
-            causal_logits_list = [self.causal_score(xz1), self.causal_score(xz2)]
-            attn_list = [attn1, attn2]
-
-        else:
-            xz, attn = self.z_dic(x, dic_z, prior)
-            causal_logits_list = [self.causal_score(xz)]
-
-            attn_list = [attn]
-
-        return causal_logits_list, attn_list
+        causal_logits_list = [self.causal_score(xz) for xz in xzs]
 
 
-    def construct_mask(self, N):
-        masks = []
-        for i in range(N):
-            a = torch.ones(N, N)
-            for j in range(N):
-                a[j, [i,j]] = 0.
-            masks.append(a)
-        mask = torch.cat(masks, 0)
-        return mask
+        return causal_logits_list
 
-    def mask_softmax(self, attention, mask):
-        max_value = torch.max(attention, 1)[0]
-        x = torch.exp(attention - max_value.unsqueeze(1)) * mask
-        x = x / torch.sum(x, dim=1, keepdim=True).expand_as(x)
-        if torch.isnan(x).sum():
-            print(x)
 
-        return x
+    def z_dic(self, y, dic_z, prior):
+        """
+        Please note that we computer the intervention in the whole batch rather than for one object in the main paper.
+        """
+        length = y.size(0)
 
-    def z_dic(self, x, dic_z, prior):
-        length = x.size(0)
-        # xy = torch.cat((x.unsqueeze(1).repeat(1, length, 1), x.unsqueeze(0).repeat(length, 1, 1)), 2)
-        y = x
-        # xyy = self.Wxy(xy.view(-1, 2 * self.feature_size))
-        # zzz = self.Wz(dic_z).t()
         attention = torch.mm(self.Wy(y), self.Wz(dic_z).t()) / (self.embedding_size ** 0.5)
         attention = F.softmax(attention, 1)
         z_hat = attention.unsqueeze(2) * dic_z.unsqueeze(0)
         z = torch.matmul(prior.unsqueeze(0), z_hat).squeeze(1)
-        xz = torch.cat((x.unsqueeze(1).repeat(1, length, 1), z.unsqueeze(0).repeat(length, 1, 1)), 2).view(-1, 2*x.size(1))
+        xz = torch.cat((y.unsqueeze(1).repeat(1, length, 1), z.unsqueeze(0).repeat(length, 1, 1)), 2).view(-1, 2*y.size(1))
 
+        # detect if encounter nan
         if torch.isnan(xz).sum():
             print(xz)
-        return xz, F.softmax(attention, 1)
+        return xz
 
 def make_causal_predictor(cfg, in_channels):
     func = registry.ROI_BOX_PREDICTOR["CausalPredictor"]

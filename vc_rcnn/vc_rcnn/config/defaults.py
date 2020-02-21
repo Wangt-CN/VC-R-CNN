@@ -407,7 +407,7 @@ _C.SOLVER.WARMUP_FACTOR = 1.0 / 3
 _C.SOLVER.WARMUP_ITERS = 500
 _C.SOLVER.WARMUP_METHOD = "linear"
 
-_C.SOLVER.CHECKPOINT_PERIOD = 50000
+_C.SOLVER.CHECKPOINT_PERIOD = 5000
 
 # Number of images per batch
 # This is global, so if we have 8 GPUs and IMS_PER_BATCH = 16, each GPU will
@@ -474,6 +474,12 @@ _C.AMP_VERBOSE = False
 
 # The bounding box coordinate file for feature extraction
 _C.BOUNDINGBOX_FILE = '/data3/wangtan/budata/cocobu_box'
+
+# The pre-prepared dictionary file path for intervention (numpy format)
+_C.DIC_FILE = '/data4/vc/vc-rcnn-betterlr/maskrcnn-benchmark/model/dic_coco.npy'
+
+# The prior probability P(z)
+_C.PRIOR_PROB = '/data4/vc/vc-rcnn-stat/stat_prob2.npy'
 
 # Num threshold of object in one image
 _C.NUM_THRESHOLD_OBJECT = 3

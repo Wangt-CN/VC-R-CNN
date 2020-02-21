@@ -74,15 +74,10 @@ class COCODataset(torchvision.datasets.coco.CocoDetection):
     def __getitem__(self, idx):
         img, anno = super(COCODataset, self).__getitem__(idx)
         anno = [obj for obj in anno if obj["iscrowd"] == 0]
+        w, h = img.size[0], img.size[1]
 
         if self.is_train:
             assert len(anno) >= 3
-            boxes = [obj["bbox"] for obj in anno]
-            boxes = torch.as_tensor(boxes).reshape(-1, 4)  # guard against no boxes
-            classes = [obj["category_id"] for obj in anno]
-            classes = [self.json_category_id_to_contiguous_id[c] for c in classes]
-            classes = torch.tensor(classes) - 1
-
             boxes = [obj["bbox"] for obj in anno]
             boxes = torch.as_tensor(boxes).reshape(-1, 4)  # guard against no boxes
             classes = [obj["category_id"] for obj in anno]
@@ -103,9 +98,6 @@ class COCODataset(torchvision.datasets.coco.CocoDetection):
             num_box = boxes.shape[0]
             boxes = torch.tensor(boxes)
 
-            w, h = img.size[0], img.size[1]
-
-            # #### for bottom_up data  ###########
             num_box = [num_box for i in range(boxes.size(0))]
             num_box = torch.tensor(num_box)
             sizes = [[w, h] for i in range(boxes.size(0))]
@@ -115,91 +107,14 @@ class COCODataset(torchvision.datasets.coco.CocoDetection):
             classes = [0 for i in range(boxes.size(0))]
             classes = torch.tensor(classes)
 
+            # NOTE that the bounding box mode of bottom-up feature is different with COCO
             target = BoxList(boxes, img.size, mode="xyxy")
+            target.add_field("num_box", num_box)
 
-        # assert len(anno)>2
-        # filter crowd annotations
-        # TODO might be better to add an extra field
-
-
-        # boxes = [obj["bbox"] for obj in anno]
-        # boxes = torch.as_tensor(boxes).reshape(-1, 4)  # guard against no boxes
-        # target = BoxList(boxes, img.size, mode="xywh").convert("xyxy")
-        #
-        # classes = [obj["category_id"] for obj in anno]
-        # classes = [self.json_category_id_to_contiguous_id[c] for c in classes]
-        # classes = torch.tensor(classes) - 1
-        # target.add_field("labels", classes)
-
-        # if anno and "segmentation" in anno[0]:
-        #     masks = [obj["segmentation"] for obj in anno]
-        #     masks = SegmentationMask(masks, img.size, mode='poly')
-        #     target.add_field("masks", masks)
-        #
-        # if anno and "keypoints" in anno[0]:
-        #     keypoints = [obj["keypoints"] for obj in anno]
-        #     keypoints = PersonKeypoints(keypoints, img.size)
-        #     target.add_field("keypoints", keypoints)
-
-        # #### for bottom_up data  ###########
-        #
-
-        # ###############################
-
-
-        w, h = img.size[0], img.size[1]
-
-
-
-        ############ for coco_gt data ##########
-        # boxes = [obj["bbox"] for obj in anno]
-        # boxes = torch.as_tensor(boxes).reshape(-1, 4)  # guard against no boxes
-        # classes = [obj["category_id"] for obj in anno]
-        # classes = [self.json_category_id_to_contiguous_id[c] for c in classes]
-        # classes = torch.tensor(classes) - 1
-
-        # target.add_field("labels", classes)
-
-        # # for test
-        #
-        # w, h = img.size[0], img.size[1]
-        #
-        # if str(anno[0]['image_id']) in self.bbox_10_100.keys():
-        #     boxes = self.bbox_10_100[str(anno[0]['image_id'])]['bbox'][:]
-        #     boxes = torch.tensor(boxes)
-        #     classes = self.bbox_10_100[str(anno[0]['image_id'])]['class_label'][:]
-        #     classes = torch.tensor(classes) - 1
-        #
-        #     image_id = [anno[0]['image_id'] for i in range(boxes.size(0))]
-        #     image_id = torch.tensor(image_id)
-        #     sizes = [[w, h] for i in range(boxes.size(0))]
-        #     sizes = torch.tensor(sizes)
-        #
-        #
-        # else:
-        #     boxes = [obj["bbox"] for obj in anno]
-        #     boxes = torch.as_tensor(boxes).reshape(-1, 4)  # guard against no boxes
-        #     # target = BoxList(boxes, img.size, mode="xywh").convert("xyxy")
-        #
-        #     classes = [obj["category_id"] for obj in anno]
-        #     classes = [self.json_category_id_to_contiguous_id[c] for c in classes]
-        #     classes = torch.tensor(classes) - 1
-        #
-
-        ### for gt coco
-        # image_id = [obj['image_id'] for obj in anno]
-        # image_id = torch.tensor(image_id)
-        # sizes = [[w, h] for obj in anno]
-        # sizes = torch.tensor(sizes)
-        #
-        # target = BoxList(boxes, img.size, mode="xywh").convert("xyxy")
-
-        # target = BoxList(boxes, img.size, mode="xyxy")
 
         target.add_field("labels", classes)
         target.add_field("image_id", image_id)
         target.add_field("orignal_size", sizes)
-        target.add_field("num_box", num_box)
 
 
         target = target.clip_to_image(remove_empty=False)
