@@ -6,4 +6,4 @@
 
 This repository contains the official PyTorch implementation for [CVPR 2020](http://cvpr2020.thecvf.com/) Paper "[Visual Commonsense R-CNN]()"(The given link is connected to a temporary version, which may be slightly different from our final camera-ready version) by [Tan Wang](https://wangt-cn.github.io/), Jianqiang Huang, [Hanwang Zhang](https://www.ntu.edu.sg/home/hanwangzhang/), and [Qianru Sun](https://qianrusun1015.github.io).
 
-Code and feature will be available soon.
+The detailed code and feature will be available soon.
