@@ -9,7 +9,7 @@ from .inference import make_roi_box_post_processor
 from .loss import make_roi_box_loss_evaluator
 from .roi_box_predictors import make_causal_predictor
 import torch.nn.functional as F
-import pdb
+import os
 class ROIBoxHead(torch.nn.Module):
     """
     Generic Box Head class.
@@ -23,6 +23,7 @@ class ROIBoxHead(torch.nn.Module):
         self.post_processor = make_roi_box_post_processor(cfg)
         self.loss_evaluator = make_roi_box_loss_evaluator(cfg)
         self.causal_predictor = make_causal_predictor(cfg, self.feature_extractor.out_channels)
+        self.feature_save_path = cfg.FEATURE_SAVE_PATH
 
     def forward(self, features, proposals, targets=None):
         """
@@ -53,12 +54,11 @@ class ROIBoxHead(torch.nn.Module):
 
 
         if not self.training:
-            # result = self.post_processor((class_logits, box_regression), proposals)
-            # self.save_object_feature_coco(x, class_logits, targets)
+
             result = self.post_processor_gt(x, class_logits, proposals)
-            # result = self.post_processor_gt_attn(x, class_logits, attn_list, proposals)
-            self.save_object_feature_gt_bu(x, result, targets)
-            # self.save_object_attn_gt(x, result, targets)
+
+            # save object feature
+            # self.save_object_feature_gt_bu(x, result, targets)
 
             return x, result, {}
 
@@ -85,19 +85,6 @@ class ROIBoxHead(torch.nn.Module):
 
         return boxes
 
-    def post_processor_gt_attn(self, x, class_logits, attn_list, boxes):
-        # class_prob = F.softmax(class_logits, -1)
-        bbx_idx = torch.arange(0, class_logits.size(0))
-        # image_shapes = [box.size for box in boxes]
-        boxes_per_image = [len(box) for box in boxes]
-        # class_prob = class_prob.split(boxes_per_image, dim=0)
-        bbx_idx = bbx_idx.split(boxes_per_image, dim=0)
-
-        for i, (attn_image, bbx_idx_image) in enumerate(zip(attn_list, bbx_idx)):
-            boxes[i].add_field("attn", attn_image)
-            boxes[i].add_field("features", x[bbx_idx_image])
-
-        return boxes
 
     def save_object_feature_gt_bu(self, x, result, targets):
 
@@ -106,84 +93,11 @@ class ROIBoxHead(torch.nn.Module):
             try:
                 assert image.get_field("num_box")[0] == feature_pre_image.shape[0]
                 image_id = str(image.get_field("image_id")[0].cpu().numpy())
-                path = '/data4/vc/vc-rcnn-onlyy/vc-rcnn-onlyy/' + image_id +'.npy'
+                path = os.path.join(self.feature_save_path, image_id) +'.npy'
                 np.save(path, feature_pre_image)
             except:
                 print(image)
 
-    def save_object_attn_gt(self, x, result, targets):
-        gpu_id = x.get_device()
-
-        with h5py.File('/data2/tingjia/wt/openimage/target_dir/coco/vc-feature/attn' + str(gpu_id) + '.hdf5', 'a') as f:
-            for i, image in enumerate(result):
-                # idx_pre_image = image.get_field("idx")
-                class_gtlabel_per_image = image.get_field("labels")
-                attn_pre_image = image.get_field("attn")
-                # class_label_per_image = image.get_field("labels_classify")
-
-                # feature_pre_image = image.get_field("features")
-                # if class_gtlabel_per_image.size(0) >= 1 and targets[i].get_field("image_id").size(0) > 0:
-                    # image_id_h5py = f.create_group(img_pths[i])
-
-                image_id_h5py = f.create_group(str(targets[i].get_field("image_id")[0].cpu().numpy()))
-                image_id_h5py.create_dataset("attn", data=attn_pre_image.cpu())
-                image_id_h5py.create_dataset("class_gtlabel", data=class_gtlabel_per_image.cpu())
-                # image_id_h5py.create_dataset("class_label", data=class_label_per_image.cpu())
-
-                original_size = targets[i].get_field("orignal_size")[0]
-                image = image.resize((original_size[0], original_size[1]))
-
-                image_id_h5py.create_dataset("bbox", data=image.bbox.cpu())
-
-
-    def save_object_feature_gt(self, x, result, targets):
-        gpu_id = x.get_device()
-
-        with h5py.File('/data2/tingjia/wt/openimage/target_dir/coco/vc-feature/coco_test_all_vc_xy_10_100_' + str(gpu_id) + '.hdf5', 'a') as f:
-            for i, image in enumerate(result):
-                # idx_pre_image = image.get_field("idx")
-                class_gtlabel_per_image = image.get_field("labels")
-                # class_label_per_image = image.get_field("labels_classify")
-
-                feature_pre_image = image.get_field("features")
-                if class_gtlabel_per_image.size(0) >= 1 and targets[i].get_field("image_id").size(0) > 0:
-                    # image_id_h5py = f.create_group(img_pths[i])
-                    if str(targets[i].get_field("image_id")[0].cpu().numpy()) in f:
-                        del f[str(targets[i].get_field("image_id")[0].cpu().numpy())]
-                    image_id_h5py = f.create_group(str(targets[i].get_field("image_id")[0].cpu().numpy()))
-                    image_id_h5py.create_dataset("feature", data=feature_pre_image.cpu())
-                    image_id_h5py.create_dataset("class_gtlabel", data=class_gtlabel_per_image.cpu())
-                    # image_id_h5py.create_dataset("class_label", data=class_label_per_image.cpu())
-
-                    original_size = targets[i].get_field("orignal_size")[0]
-                    image = image.resize((original_size[0], original_size[1]))
-
-                    image_id_h5py.create_dataset("bbox", data=image.bbox.cpu())
-
-
-    def save_object_feature_coco(self, x, result, targets):
-        gpu_id = x.get_device()
-        if gpu_id == 0:
-            with h5py.File('/data2/tingjia/wt/openimage/target_dir/Openimages/coco_vctrain/coco_train_all_vc2.hdf5', 'a') as f:
-                for i, image in enumerate(result):
-                    idx_pre_image = image.get_field("idx")
-                    softscore_pre_image = image.get_field("soft_scores")
-                    class_label_per_image = image.get_field("labels")
-
-                    feature_pre_image = x[idx_pre_image]
-                    if class_label_per_image.size(0) >= 1 and targets[i].get_field("image_id").size(0) > 0:
-
-                        # image_id_h5py = f.create_group(img_pths[i])
-                        # exist_id = str(targets[i].get_field("image_id")[0].cpu().numpy())
-                        # if exist_id not in f.keys():
-                        image_id_h5py = f.create_group(str(targets[i].get_field("image_id")[0].cpu().numpy()))
-                        image_id_h5py.create_dataset("feature", data=feature_pre_image.cpu())
-                        image_id_h5py.create_dataset("soft_label", data=softscore_pre_image.cpu())
-                        image_id_h5py.create_dataset("class_label", data=class_label_per_image.cpu())
-
-                        original_size = targets[i].get_field("orignal_size")[0]
-                        image = image.resize((original_size[0], original_size[1]))
-                        image_id_h5py.create_dataset("bbox", data=image.bbox.cpu())
 
 
 

@@ -2,6 +2,7 @@
 import torch
 import torchvision
 import h5py
+import os
 import numpy as np
 from vc_rcnn.structures.bounding_box import BoxList
 from vc_rcnn.structures.segmentation_mask import SegmentationMask
@@ -94,10 +95,11 @@ class COCODataset(torchvision.datasets.coco.CocoDetection):
         # for feature extraction during testing (bottom up bbox here)
         else:
             image_id_bu = str(self.id_to_img_map[idx])
-            boxes = np.load(self.box_dir + image_id_bu + '.npy')
+            boxes = np.load(os.path.join(self.box_dir, image_id_bu) + '.npy')
             num_box = boxes.shape[0]
             boxes = torch.tensor(boxes)
 
+            # record the num of boxes in image to make sure the preprocess is right
             num_box = [num_box for i in range(boxes.size(0))]
             num_box = torch.tensor(num_box)
             sizes = [[w, h] for i in range(boxes.size(0))]
@@ -107,7 +109,7 @@ class COCODataset(torchvision.datasets.coco.CocoDetection):
             classes = [0 for i in range(boxes.size(0))]
             classes = torch.tensor(classes)
 
-            # NOTE that the bounding box mode of bottom-up feature is different with COCO
+            # NOTE that the bounding box format of bottom-up feature is different with COCO
             target = BoxList(boxes, img.size, mode="xyxy")
             target.add_field("num_box", num_box)
 

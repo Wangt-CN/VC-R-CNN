@@ -478,6 +478,9 @@ _C.BOUNDINGBOX_FILE = '/data3/wangtan/budata/cocobu_box'
 # The pre-prepared dictionary file path for intervention (numpy format)
 _C.DIC_FILE = '/data4/vc/vc-rcnn-betterlr/maskrcnn-benchmark/model/dic_coco.npy'
 
+# The pre-prepared dictionary file path for intervention (numpy format)
+_C.FEATURE_SAVE_PATH = '/data4/vc/github_onlyy/vc_feature_github'
+
 # The prior probability P(z)
 _C.PRIOR_PROB = '/data4/vc/vc-rcnn-stat/stat_prob2.npy'
 

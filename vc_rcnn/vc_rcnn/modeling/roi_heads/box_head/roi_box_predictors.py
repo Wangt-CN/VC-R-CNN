@@ -106,7 +106,8 @@ class CausalPredictor(nn.Module):
         Please note that we computer the intervention in the whole batch rather than for one object in the main paper.
         """
         length = y.size(0)
-
+        if length == 1:
+            print('debug')
         attention = torch.mm(self.Wy(y), self.Wz(dic_z).t()) / (self.embedding_size ** 0.5)
         attention = F.softmax(attention, 1)
         z_hat = attention.unsqueeze(2) * dic_z.unsqueeze(0)
