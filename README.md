@@ -45,7 +45,7 @@ This projuct aims to build a visual commonsense representation learning framewor
 
 1. VC Feature:
    - **Effective**: Our visual commonsense representation encodes the``sense-making'' knowledge between object RoIs with causal intervention rather than just trivial correlation prediction. Compared to the previous widely used [Up-Down Feature](https://github.com/peteanderson80/bottom-up-attention), our VC can be regarded as an effective supplementary knowledge that models the interaction between objects for the downstream tasks. 
-   - **Easy to Use**: As we introduced in our paper, the VC Feature is extracted by providing the RoI boxes coordinates. Then the VC Feature can be just concatenated on the previous visual object features (e.g., Up-Down Feature) and ready to roll.  
+   - **Easy to Use**: As we introduced in our paper, the VC Feature is extracted by providing the RoI boxes coordinates. Then the VC Feature can be **just concatenated** on the previous visual object features (e.g., Up-Down Feature) and ready to roll.  
    - **Easy to Expand**: With a learned VC R-CNN framework, we can easily extract VC Features for any images and prepare them as an ``augmentation feature'' for the currently used representation conveniently.
 2. VC R-CNN
    - **Fast, Memory-efficient, Multi-GPU**: Our VC R-CNN framework is based on the well-known [maskrcnn-benchmark](https://github.com/facebookresearch/maskrcnn-benchmark) from facebook. Therefore, our VC R-CNN just inherit all its advantages. (It's pity that the [detectron2](https://github.com/facebookresearch/detectron2) had not been released when I am working on this project, however maskrcnn-benchmark can be a stable version.)
@@ -55,7 +55,7 @@ This projuct aims to build a visual commonsense representation learning framewor
 
 ## VC Feature
 
-For easy-to-use, here we directly provide the pretrained VC Features on the entire **MSCOCO dataset** based on the [Up-Down](https://github.com/peteanderson80/bottom-up-attention) feature's boxes in the below links. The features are stored in tar.gz format.
+For easy-to-use, here we directly provide the pretrained VC Features on the entire **MSCOCO dataset** based on the [Up-Down](https://github.com/peteanderson80/bottom-up-attention) feature's boxes in the below links (This feature is a beta version and we would further fine-tune our VC Feature for better downstream performance). The features are stored in tar.gz format.
 
 
 
