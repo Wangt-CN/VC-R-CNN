@@ -24,5 +24,5 @@ python setup.py install --cuda_ext --cpp_ext
 cd ..
 
 # install VC
-cd vc_rcnn
+cd VC-R-CNN
 python setup.py build develop
