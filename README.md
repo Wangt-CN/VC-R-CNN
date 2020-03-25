@@ -13,8 +13,8 @@ This repository contains the official PyTorch implementation and the proposed VC
 
 **Visual Commonsense R-CNN** <br />
 [Tan Wang](https://wangt-cn.github.io/), Jianqiang Huang, [Hanwang Zhang](https://www.ntu.edu.sg/home/hanwangzhang/), [Qianru Sun](https://qianrusun1015.github.io) <br />
-**CVPR 2020** <br />
-**[[Paper](https://arxiv.org/abs/2002.12204)]** <br />
+**IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2020** <br />
+**[[Paper](https://arxiv.org/abs/2002.12204)]**, **[[Zhihu Article](https://zhuanlan.zhihu.com/p/111306353)]** <br />
 
 <div align="center">
   <img src="https://github.com/Wangt-CN/Wangt-CN.github.io/blob/master/project/vc-rcnn/framework_github.png" width="600px" />
