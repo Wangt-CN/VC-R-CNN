@@ -20,6 +20,7 @@ cd ..
 cd ..
 git clone https://github.com/NVIDIA/apex.git
 cd apex
+git checkout f3a960f80244cf9e80558ab30f7f7e8cbf03c0a0
 python setup.py install --cuda_ext --cpp_ext
 cd ..
 
