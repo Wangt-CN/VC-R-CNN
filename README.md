@@ -14,7 +14,7 @@ This repository contains the official PyTorch implementation and the proposed VC
 **Visual Commonsense R-CNN** <br />
 [Tan Wang](https://wangt-cn.github.io/), Jianqiang Huang, [Hanwang Zhang](https://www.ntu.edu.sg/home/hanwangzhang/), [Qianru Sun](https://qianrusun1015.github.io) <br />
 **IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2020** <br />
-**[[Paper](https://arxiv.org/abs/2002.12204)]**, **[[Zhihu Article](https://zhuanlan.zhihu.com/p/111306353)]** <br />
+**[[Paper](https://arxiv.org/abs/2002.12204)]**, **[[Zhihu Article](https://zhuanlan.zhihu.com/p/111306353)]**, **[[15min Slides](https://github.com/Wangt-CN/Wangt-CN.github.io/blob/master/project/vc-rcnn/slides_15min_vc_rcnn.pdf)]**, **[[Video](https://www.youtube.com/watch?v=iL6m2mVVzpo&list=PL4DwY1suLMkdjiU9lKph6wQbTbKeGP0e_&index=7)]** <br />
 
 <div align="center">
   <img src="https://github.com/Wangt-CN/Wangt-CN.github.io/blob/master/project/vc-rcnn/framework_github.png" width="600px" />
@@ -24,10 +24,11 @@ This repository contains the official PyTorch implementation and the proposed VC
 If you find our VC feature and code helpful, please kindly consider citing:
 
 ```
-@article{wang2020visual,
+@inproceedings{wang2020visual,
   title={Visual commonsense r-cnn},
   author={Wang, Tan and Huang, Jianqiang and Zhang, Hanwang and Sun, Qianru},
-  journal={arXiv preprint arXiv:2002.12204},
+  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+  pages={10760--10770},
   year={2020}
 }
 ```
