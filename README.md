@@ -173,7 +173,7 @@ Most of the configuration files that we provide assume that we are running 2 ima
 Modify the cfg parameters. Here is an example:
 
 ```bash
-python tools/train_net.py --config-file "configs/e2e_mask_rcnn_R_101_FPN_1x.yaml" SOLVER.IMS_PER_BATCH 2 SOLVER.BASE_LR 0.0025 SOLVER.MAX_ITER 720000 SOLVER.STEPS "(480000, 640000)" TEST.IMS_PER_BATCH 1 MODEL.RPN.FPN_POST_NMS_TOP_N_TRAIN 2000
+python tools/train_net.py --config-file "configs/e2e_mask_rcnn_R_101_FPN_1x.yaml" --skip-test SOLVER.IMS_PER_BATCH 2 SOLVER.BASE_LR 0.0025 SOLVER.MAX_ITER 720000 SOLVER.STEPS "(480000, 640000)" TEST.IMS_PER_BATCH 1 MODEL.RPN.FPN_POST_NMS_TOP_N_TRAIN 2000
 ```
 
 Ps: To running more images on one GPU, you can refer to the [maskrcnn-benchmark].
@@ -182,15 +182,14 @@ Ps: To running more images on one GPU, you can refer to the [maskrcnn-benchmark]
 The maskrcnn-benchmark directly support the multi-gpu training with `torch.distributed.launch`. You can run the command like (you need change $NGPUS to the num of GPU you use):
 
 ```bash
-python -m torch.distributed.launch --nproc_per_node=$NGPUS tools/train_net.py --config-file "path/to/config/file.yaml" MODEL.RPN.FPN_POST_NMS_TOP_N_TRAIN images_per_gpu x 1000
+python -m torch.distributed.launch --nproc_per_node=$NGPUS tools/train_net.py --config-file "path/to/config/file.yaml" --skip-test MODEL.RPN.FPN_POST_NMS_TOP_N_TRAIN images_per_gpu x 1000
 ```
 
 **Notes**: 
 
 - In our experiments, we adopted `e2e_mask_rcnn_R_101_FPN_1x.yaml` **without the Mask Branch** (set False) as our config file.
-
+- When training VC, actually we need not test scripts, thus we set `--skip-test` to skip the test process after training. The test script is used to extract vc feature. Or if you design your own test, you can remove `--skip-test`.
 - The `MODEL.RPN.FPN_POST_NMS_TOP_N_TRAIN` denotes that the proposals are selected for per the batch rather than per image in the default training. The value is calculated by **1000 x images-per-gpu**. Here we have 2 images per GPU, therefore we set the number as 1000 x 2 = 2000. If we have 8 images per GPU, the value should be set as 8000. See [#672@maskrcnn-benchmark](https://github.com/facebookresearch/maskrcnn-benchmark/issues/672) for more details.
-
 - Please note that the learning rate & iteration change rule follows the [scheduling rules from Detectron](https://github.com/facebookresearch/Detectron/blob/master/configs/getting_started/tutorial_1gpu_e2e_faster_rcnn_R-50-FPN.yaml#L14-L30), which means the lr need to be set 2x if the number of GPUs become 2x. In our methods, the learning rate is set for 4 GPUs and each GPU has 2 images.
 - In my practice, the learning rate can not be best customized since the VC training is not a supervised model and you cannot measure the goodness of the VC model from training procedure. We have provide a general suitable learning rate and you can make some slight modification. 
 - You can turn on the **Tensorboard** logger by add `--use-tensorboard` into command (Need to install tensorflow and tensorboardx first).
