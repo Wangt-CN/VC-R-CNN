@@ -9,7 +9,7 @@
 
 **[NEW]:** the VC Feature pretrained on MSCOCO is provided. Just have a try! :star2:
 
-This repository contains the official PyTorch implementation and the proposed VC feature (beta version) for [CVPR 2020](http://cvpr2020.thecvf.com/) Paper "[Visual Commonsense R-CNN](https://arxiv.org/abs/2002.12204)" (The link is the Arxiv version which may be slightly different from our final camera-ready version). For technical details, please refer to:
+This repository contains the official PyTorch implementation and the proposed VC feature for [CVPR 2020](http://cvpr2020.thecvf.com/) Paper "[Visual Commonsense R-CNN](https://arxiv.org/abs/2002.12204)". For technical details, please refer to:
 
 **Visual Commonsense R-CNN** <br />
 [Tan Wang](https://wangt-cn.github.io/), Jianqiang Huang, [Hanwang Zhang](https://www.ntu.edu.sg/home/hanwangzhang/), [Qianru Sun](https://qianrusun1015.github.io) <br />
