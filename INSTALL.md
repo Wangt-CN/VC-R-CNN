@@ -1,6 +1,7 @@
 ## Installation
 
-Most of the requirements of this projects are exactly the same as [maskrcnn-benchmark](https://github.com/facebookresearch/maskrcnn-benchmark). If you have any problem of your environment, you should check their [issues page](https://github.com/facebookresearch/maskrcnn-benchmark/issues) first. Hope you will find the answer.
+Most of the requirements of this projects are exactly the same as [maskrcnn-benchmark](https://github.com/facebookresearch/maskrcnn-benchmark). I put them into one install.sh file. However, it's writen for **CUDA10.0**. If not, you should kindly change the [commond](https://github.com/Wangt-CN/VC-R-CNN/blob/master/install.sh#L9) about installing pytorch in `install.sh`. 
+Moreover, if you have any problem of your environment, you should check this [issues page](https://github.com/facebookresearch/maskrcnn-benchmark/issues) first. Hope you will find the answer.
 
 ### Requirements:
 
